@@ -1,0 +1,24 @@
+# On every pull request and push to main: shellcheck (finds mistakes in shell
+# scripts) and the tests (bats, a plain bash test runner). The tests use fake
+# docker, iptables and curl commands, so nothing here needs Docker or a
+# firewall.
+name: test
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: shellcheck
+        run: shellcheck -x -P SCRIPTDIR scripts/*.sh
+      - name: install bats
+        run: sudo apt-get install -y --no-install-recommends bats
+      - name: tests
+        run: bats test

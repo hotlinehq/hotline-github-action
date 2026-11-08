@@ -1,0 +1,36 @@
+# Started by hand. Writes proxy-image.txt from a Hotline image tag: the
+# digest of the whole image, only if its cosign signature verifies. Until
+# Hotline has a release, the tag may be edge. A release of the action is
+# then a tag on the commit this makes.
+name: pin image
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Hotline image tag, for example 1.0.0 (or edge before the first Hotline release)
+        required: true
+        default: edge
+
+permissions:
+  contents: write
+
+jobs:
+  pin:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - name: pin
+        env:
+          TAG: ${{ inputs.tag }}
+        run: bash scripts/pin-image.sh "$TAG"
+      - name: commit
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add proxy-image.txt
+          git diff --cached --quiet && { echo "already pinned"; exit 0; }
+          git commit -m "Pin the Hotline image: $TAG"
+          git push

@@ -1,0 +1,9 @@
+name: Hotline for CI, teardown
+description: "The last step of the job, with `if: always()`. Stops the Hotline proxy so waiting records are sent, removes the redirect and the trusted issuer, and writes a short job summary."
+author: petercipov
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: bash "$GITHUB_ACTION_PATH/../scripts/teardown.sh"
