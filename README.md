@@ -38,7 +38,7 @@ Every lookup (region, public address) happens before the redirect, so the proxy 
 
 ## Inputs
 
-See [`action.yml`](action.yml). In short: `exporters`, `apis` (an api with no `checks` list gets `checks: []`, the route only, so bodies are never read), `integration`, `passthrough`, `ech-relay`, `tls-ports`, `http-ports`, `signing-key`, `mode` (`firewall` or `env`), `image`, `region`, `region-lookup`, `labels`.
+See [`action.yml`](action.yml). In short: `exporters`, `apis` (an api with no `checks` list gets `checks: []`, the route only, so bodies are never read), `integration`, `passthrough`, `ech-relay`, `tls-ports`, `http-ports`, `signing-key`, `record-urls` (off by default; `true` puts the whole address, query included, on minimal records, so use it only where query strings hold no secrets), `mode` (`firewall` or `env`), `image`, `region`, `region-lookup`, `labels`.
 
 Secrets reach the proxy as `{ env: NAME }`: give the step `env: NAME: ${{ secrets.NAME }}`. Relative `spec:` paths in `apis` are read from the workspace, so check the repository out before the action, or use absolute paths.
 

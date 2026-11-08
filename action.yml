@@ -35,6 +35,10 @@ inputs:
     description: "A secret that signs the records. Without it records are sent unsigned."
     required: false
     default: ''
+  record-urls:
+    description: "`true` puts the whole address of each call, query string included and not redacted, on the records of calls to hosts with no api, which are the minimal ones. Off by default, since query strings often hold secrets."
+    required: false
+    default: 'false'
   mode:
     description: '`firewall` (default) redirects connections with firewall rules. `env` sets HTTPS_PROXY and HTTP_PROXY instead.'
     required: false
@@ -81,6 +85,7 @@ runs:
         HOTLINE_IN_TLS_PORTS: ${{ inputs.tls-ports }}
         HOTLINE_IN_HTTP_PORTS: ${{ inputs.http-ports }}
         HOTLINE_IN_SIGNING_KEY: ${{ inputs.signing-key }}
+        HOTLINE_IN_RECORD_URLS: ${{ inputs.record-urls }}
         HOTLINE_IN_MODE: ${{ inputs.mode }}
         HOTLINE_IN_IMAGE: ${{ inputs.image }}
         HOTLINE_IN_REGION: ${{ inputs.region }}

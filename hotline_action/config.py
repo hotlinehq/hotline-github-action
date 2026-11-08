@@ -32,7 +32,7 @@ def base_labels(env, region, public_ip, image_digest):
 
 
 def build(*, exporters, apis, labels, extra_labels, passthrough, ech_relay,
-          integration, mode, signing):
+          integration, mode, signing, record_urls=False):
     exporters = exporters or []
     apis = apis or {}
     intercept = {"address": f"127.0.0.1:{INTERCEPT_PORT}", "issuer": "ci", "integration": integration}
@@ -68,13 +68,17 @@ def build(*, exporters, apis, labels, extra_labels, passthrough, ech_relay,
         main["apis"] = sorted(out_apis)
     if signing:
         main["fingerprintKey"] = {"env": "HOTLINE_SIGNING_KEY"}
+    # plain calls sent here by the redirect must go out as plain; this entry is
+    # also the default for the setting that puts the address on minimal records
+    not_passed = {"id": "not-passed", "tlsOrigination": False}
+    if record_urls:
+        not_passed["urlFull"] = True
     return {
         "listen": listen,
         "issuers": {"ci": {"cert": "/etc/hotline/ci/ca.crt", "key": "/etc/hotline/ci/ca.key"}},
         "exporters": out_exporters,
         "apis": out_apis,
-        # plain calls sent here by the redirect must go out as plain
-        "integrations": [main, {"id": "not-passed", "tlsOrigination": False}],
+        "integrations": [main, not_passed],
     }
 
 
