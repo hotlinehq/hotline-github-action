@@ -1,0 +1,88 @@
+name: Hotline for CI
+description: "Records the failed downloads and other calls of a CI job through the Hotline proxy, without changing the job's other steps. Linux runners only. Use as the first step; add the teardown action as the last."
+author: petercipov
+
+inputs:
+  exporters:
+    description: "OpenTelemetry destinations, in the Hotline config format (a YAML list of `otlp:` entries). Secrets are written as `{ env: NAME }` and the step needs `env:` with that name. Empty (for example a pull request from a fork) means the action does nothing."
+    required: false
+    default: ''
+  apis:
+    description: "The vendor apis to check, in the Hotline config format (a YAML map). An api with no `checks` list gets `checks` of `[]`, the route only. Relative `spec` paths are read from the workspace, so check the repository out first, or give absolute paths."
+    required: false
+    default: ''
+  integration:
+    description: "The ID of every call. Default is ci-OWNER_REPO__WORKFLOW."
+    required: false
+    default: ''
+  passthrough:
+    description: "Hosts relayed untouched, as a YAML list. Needed for programs that pin a vendor's certificate."
+    required: false
+    default: ''
+  ech-relay:
+    description: "Encrypted client hello outer names relayed untouched, as a YAML list."
+    required: false
+    default: ''
+  tls-ports:
+    description: "Outgoing TLS ports sent to the proxy, as a YAML list."
+    required: false
+    default: '[443]'
+  http-ports:
+    description: "Outgoing plain HTTP ports sent to the proxy, as a YAML list."
+    required: false
+    default: '[80]'
+  signing-key:
+    description: "A secret that signs the records. Without it records are sent unsigned."
+    required: false
+    default: ''
+  mode:
+    description: '`firewall` (default) redirects connections with firewall rules. `env` sets HTTPS_PROXY and HTTP_PROXY instead.'
+    required: false
+    default: firewall
+  image:
+    description: "Replaces the pinned Hotline image. The word `edge` means the newest build from main; or give a full image reference. This gives up the digest pin and the signature check, so the action warns. Empty means the image pinned in proxy-image.txt."
+    required: false
+    default: ''
+  region:
+    description: '`auto` (default), `off`, or a fixed value such as eu-west-1, which always wins.'
+    required: false
+    default: auto
+  region-lookup:
+    description: "Set to `public-ip` to let a self-hosted runner look up its public address and nearest Cloudflare site."
+    required: false
+    default: ''
+  labels:
+    description: "Extra labels on every record, as a YAML map."
+    required: false
+    default: ''
+
+outputs:
+  ca-cert:
+    description: "Path of the public certificate of this job's issuer (also in HOTLINE_CA_CERT). Empty when nothing was set up."
+    value: ${{ steps.setup.outputs.ca-cert }}
+
+runs:
+  using: composite
+  steps:
+    - id: setup
+      shell: bash
+      run: |
+        if ! command -v python3 >/dev/null 2>&1; then
+          echo "::warning title=Hotline::python3 is not installed on this runner; nothing was changed."
+          exit 0
+        fi
+        python3 "$GITHUB_ACTION_PATH/run.py" setup
+      env:
+        HOTLINE_IN_EXPORTERS: ${{ inputs.exporters }}
+        HOTLINE_IN_APIS: ${{ inputs.apis }}
+        HOTLINE_IN_INTEGRATION: ${{ inputs.integration }}
+        HOTLINE_IN_PASSTHROUGH: ${{ inputs.passthrough }}
+        HOTLINE_IN_ECH_RELAY: ${{ inputs.ech-relay }}
+        HOTLINE_IN_TLS_PORTS: ${{ inputs.tls-ports }}
+        HOTLINE_IN_HTTP_PORTS: ${{ inputs.http-ports }}
+        HOTLINE_IN_SIGNING_KEY: ${{ inputs.signing-key }}
+        HOTLINE_IN_MODE: ${{ inputs.mode }}
+        HOTLINE_IN_IMAGE: ${{ inputs.image }}
+        HOTLINE_IN_REGION: ${{ inputs.region }}
+        HOTLINE_IN_REGION_LOOKUP: ${{ inputs.region-lookup }}
+        HOTLINE_IN_LABELS: ${{ inputs.labels }}

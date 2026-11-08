@@ -1,0 +1,12 @@
+name: Hotline for CI, teardown
+description: "The last step of the job, with `if: always()`. Stops the Hotline proxy so waiting records are sent, removes the redirect and the trusted issuer, and writes a short job summary."
+author: petercipov
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        if command -v python3 >/dev/null 2>&1; then
+          python3 "$GITHUB_ACTION_PATH/../run.py" teardown
+        fi

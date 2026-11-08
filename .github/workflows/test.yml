@@ -1,0 +1,20 @@
+# On every pull request and push to main: the Python tests (unittest, in the standard library). The tests use a fake
+# machine, so nothing here needs Docker or a firewall.
+name: test
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: check that everything compiles
+        run: python3 -W error -m compileall -q hotline_action run.py test
+      - name: tests
+        run: python3 -m unittest discover -s . -t . -p 'test_*.py' 
