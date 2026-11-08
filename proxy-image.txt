@@ -1,2 +1,2 @@
 # The Hotline image the action pulls, by digest. Written by the 'pin image' workflow.
-# Nothing is pinned yet: run the workflow, or set the action's image input.
+ghcr.io/petercipov/hotline-proxy@sha256:49bcdb2ed5bb7d073663807cd107aa965923f868d209b503432f4a5113c5223d  # prerelease
