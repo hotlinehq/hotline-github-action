@@ -125,6 +125,16 @@ class Config(Base):
         self.setup_job()
         self.assertNotIn("fingerprintKey", self.config()["integrations"][0])
 
+    def test_records_the_address_of_minimal_records_only_when_asked(self):
+        self.setup_job()
+        self.assertNotIn("urlFull", self.config()["integrations"][1])
+        self.setup_job(HOTLINE_IN_RECORD_URLS="false")
+        self.assertNotIn("urlFull", self.config()["integrations"][1])
+        self.setup_job(HOTLINE_IN_RECORD_URLS="true")
+        not_passed = self.config()["integrations"][1]
+        self.assertEqual(not_passed["id"], "not-passed")
+        self.assertIs(not_passed["urlFull"], True)
+
     def test_puts_the_labels_in_every_exporter_extra_labels_and_the_exporters_own_winning(self):
         self.setup_job(
             HOTLINE_IN_EXPORTERS='- otlp: { endpoint: "http://a:4318" }\n'

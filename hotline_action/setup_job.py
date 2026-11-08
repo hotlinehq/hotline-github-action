@@ -114,7 +114,8 @@ def run_setup(env, system, root, log=print):
             exporters=exporters, apis=apis,
             labels=configuration.base_labels(env, found_region, public_ip, digest),
             extra_labels=extra_labels, passthrough=passthrough, ech_relay=ech_relay,
-            integration=integration, mode=mode, signing=signing)
+            integration=integration, mode=mode, signing=signing,
+            record_urls=env.get("HOTLINE_IN_RECORD_URLS", "").lower() == "true")
         # JSON is valid YAML
         (state / "config" / "hotline-proxy.yaml").write_text(json.dumps(config, indent=2))
 
