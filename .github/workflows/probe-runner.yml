@@ -1,0 +1,34 @@
+# One-off probe (2026-11-08): what can a GitHub-hosted runner learn about where
+# it runs, and can it change its firewall? Runs only on pushes to this branch.
+name: probe runner
+on:
+  push:
+    branches: [claude/project-thread-ml3exm]
+
+permissions: {}
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: runner environment
+        run: |
+          echo "RUNNER_ENVIRONMENT=$RUNNER_ENVIRONMENT RUNNER_OS=$RUNNER_OS ImageOS=$ImageOS"
+          ip -4 -brief addr
+      - name: azure metadata (region only)
+        run: |
+          curl -s -m 5 -H Metadata:true --noproxy '*' \
+            "http://169.254.169.254/metadata/instance/compute?api-version=2021-02-01" \
+            | jq '{location, vmSize, zone}' || echo "azure metadata not reachable (exit $?)"
+      - name: cloudflare trace
+        run: curl -s -m 5 https://1.1.1.1/cdn-cgi/trace | grep -E '^(ip|colo|loc)=' || echo "cloudflare trace failed"
+      - name: public ip over dns
+        run: dig +short +time=3 myip.opendns.com @resolver1.opendns.com || echo "dns lookup failed"
+      - name: firewall and tools
+        run: |
+          sudo -n true && echo "sudo without password: yes"
+          sudo iptables -t nat -L OUTPUT -n | head -5
+          sudo iptables -t nat -A OUTPUT -p tcp --dport 9 -j RETURN && echo "adding a nat rule: yes"
+          command -v nft && sudo nft list tables | head -5
+          command -v update-ca-certificates && echo "update-ca-certificates: yes"
+          docker version --format 'docker {{.Server.Version}}'
