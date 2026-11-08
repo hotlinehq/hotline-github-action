@@ -13,7 +13,7 @@ class Teardown(Base):
         self.setup_job()
         self.system.calls.clear()
         self.teardown_job()
-        self.assertIn("docker stop -t 20 hotline-ci-proxy", self.system.calls)
+        self.assertIn("docker stop -t 15 hotline-ci-proxy", self.system.calls)
         self.assertLess(self.index("-D OUTPUT"), self.index("docker stop"))
         self.assertFalse(self.state.exists())
 

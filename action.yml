@@ -16,7 +16,7 @@ inputs:
     required: false
     default: ''
   passthrough:
-    description: "Hosts relayed untouched, as a YAML list. Needed for programs that pin a vendor's certificate."
+    description: "Hosts relayed untouched, as a YAML list, on top of the runner's own *.githubapp.com, which is always relayed. Needed for programs that pin a vendor's certificate."
     required: false
     default: ''
   ech-relay:

@@ -16,6 +16,14 @@ ADMIN_PORT = 18081
 INTERCEPT_PORT = 18444
 CA_FILE = "/usr/local/share/ca-certificates/hotline-ci.crt"
 READYZ = f"http://127.0.0.1:{ADMIN_PORT}/readyz"
+# The runner's own agent talks to these hosts and does not trust our issuer
+# (it keeps the list it read at start), so they are always relayed untouched.
+RUNNER_PASSTHROUGH = ["*.githubapp.com"]
+# The proxy waits for open connections when it stops; the job's last calls
+# are done by then, so it is told not to wait for long. Docker's own wait is
+# a little longer, so the proxy is never killed with records still queued.
+PROXY_STOP_FLAGS = ["--drain-delay", "0s", "--shutdown-timeout", "10s"]
+DOCKER_STOP_SECONDS = "15"
 
 
 class Fail(Exception):

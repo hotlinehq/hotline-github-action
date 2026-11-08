@@ -3,7 +3,7 @@ redirect and the trusted issuer, and writes a short summary."""
 
 import shutil
 
-from .common import CONTAINER, load_state, redirect_off, state_dir, untrust_ca
+from .common import CONTAINER, DOCKER_STOP_SECONDS, load_state, redirect_off, state_dir, untrust_ca
 
 
 def run_teardown(env, system, root=None, log=print):
@@ -14,7 +14,7 @@ def run_teardown(env, system, root=None, log=print):
     if state["mode"] == "firewall":
         redirect_off(system)
     # stopping gives the proxy time to send what is waiting
-    system.try_run("docker", "stop", "-t", "20", CONTAINER)
+    system.try_run("docker", "stop", "-t", DOCKER_STOP_SECONDS, CONTAINER)
     try:
         exited = system.run("docker", "inspect", "--format", "{{.State.ExitCode}}",
                             CONTAINER, capture=True).strip()

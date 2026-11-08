@@ -144,14 +144,36 @@ class Config(Base):
             self.assertEqual(r["vcs.ref.head.name"], "custom")
         self.assertEqual(self.resource(1)["service.name"], "mine")
 
-    def test_passes_passthrough_and_ech_relay_and_leaves_them_out_when_empty(self):
+    def test_passes_passthrough_and_ech_relay_and_leaves_ech_out_when_empty(self):
         self.setup_job()
-        self.assertNotIn("passthrough", self.config()["listen"]["intercept"])
+        self.assertNotIn("ech", self.config()["listen"]["intercept"])
         self.setup_job(HOTLINE_IN_PASSTHROUGH="[pinned.example.com]",
                        HOTLINE_IN_ECH_RELAY="[outer.example.net]")
         intercept = self.config()["listen"]["intercept"]
-        self.assertEqual(intercept["passthrough"], ["pinned.example.com"])
+        self.assertIn("pinned.example.com", intercept["passthrough"])
         self.assertEqual(intercept["ech"], {"relay": ["outer.example.net"]})
+
+
+class RunnerAndShutdown(Base):
+    def test_always_relays_the_runners_own_github_hosts_untouched(self):
+        self.setup_job()
+        self.assertEqual(self.config()["listen"]["intercept"]["passthrough"], ["*.githubapp.com"])
+
+    def test_adds_the_passthrough_input_to_the_default_once(self):
+        self.setup_job(HOTLINE_IN_PASSTHROUGH="[pinned.example.com, '*.githubapp.com']")
+        self.assertEqual(self.config()["listen"]["intercept"]["passthrough"],
+                         ["*.githubapp.com", "pinned.example.com"])
+
+    def test_the_proxy_stops_at_once_so_the_last_records_are_sent(self):
+        self.setup_job()
+        run = next(c for c in self.system.calls if c.startswith("docker run"))
+        self.assertIn("--drain-delay 0s --shutdown-timeout 10s", run)
+
+    def test_labels_a_pull_request_with_its_branch_not_the_merge_ref(self):
+        self.setup_job(GITHUB_REF_NAME="119/merge", GITHUB_HEAD_REF="claude/trial")
+        self.assertEqual(self.resource()["vcs.ref.head.name"], "claude/trial")
+        self.setup_job(GITHUB_REF_NAME="main")
+        self.assertEqual(self.resource()["vcs.ref.head.name"], "main")
 
 
 class Issuer(Base):
