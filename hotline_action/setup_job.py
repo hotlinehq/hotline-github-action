@@ -10,7 +10,7 @@ import subprocess
 
 from . import config as configuration
 from . import image, region
-from .common import (ADMIN_PORT, CA_FILE, CONTAINER, PROXY_PORT, PROXY_UID, READYZ,
+from .common import (ADMIN_PORT, CA_FILE, CONTAINER, PROXY_PORT, PROXY_STOP_FLAGS, PROXY_UID, READYZ,
                      Fail, redirect_off, redirect_on, state_dir, untrust_ca, warn)
 
 
@@ -127,7 +127,7 @@ def run_setup(env, system, root, log=print):
             "--user", f"{PROXY_UID}:{PROXY_UID}", "--read-only", "--cap-drop", "ALL",
             "-v", f"{state}/config:/etc/hotline/config:ro", "-v", f"{state}/ca:/etc/hotline/ci:ro",
             "-v", f"{env.get('GITHUB_WORKSPACE') or os.getcwd()}:/workspace:ro",
-            *env_args, ref, "run", "--config", "/etc/hotline/config/hotline-proxy.yaml",
+            *env_args, ref, "run", "--config", "/etc/hotline/config/hotline-proxy.yaml", *PROXY_STOP_FLAGS,
             env={"HOTLINE_SIGNING_KEY": env.get("HOTLINE_IN_SIGNING_KEY", "")} if signing else None)
         undo.append(lambda: system.try_run("docker", "rm", "-f", CONTAINER))
 

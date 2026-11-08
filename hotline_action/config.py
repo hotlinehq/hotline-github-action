@@ -1,6 +1,6 @@
 """The proxy's config, written from the action's inputs."""
 
-from .common import ADMIN_PORT, INTERCEPT_PORT, PROXY_PORT
+from .common import ADMIN_PORT, INTERCEPT_PORT, PROXY_PORT, RUNNER_PASSTHROUGH
 
 
 def _abspath(value):
@@ -17,7 +17,8 @@ def base_labels(env, region, public_ip, image_digest):
         "cicd.pipeline.task.name": env.get("GITHUB_JOB", ""),
         "cicd.pipeline.run.id": env.get("GITHUB_RUN_ID", ""),
         "vcs.repository.name": env.get("GITHUB_REPOSITORY", ""),
-        "vcs.ref.head.name": env.get("GITHUB_REF_NAME", ""),
+        # on a pull request GITHUB_REF_NAME is the merge ref, such as 119/merge
+        "vcs.ref.head.name": env.get("GITHUB_HEAD_REF") or env.get("GITHUB_REF_NAME", ""),
         "hotline.ci.run_attempt": env.get("GITHUB_RUN_ATTEMPT", ""),
         "hotline.ci.event": env.get("GITHUB_EVENT_NAME", ""),
         "os.type": "linux",
@@ -35,8 +36,7 @@ def build(*, exporters, apis, labels, extra_labels, passthrough, ech_relay,
     exporters = exporters or []
     apis = apis or {}
     intercept = {"address": f"127.0.0.1:{INTERCEPT_PORT}", "issuer": "ci", "integration": integration}
-    if passthrough:
-        intercept["passthrough"] = passthrough
+    intercept["passthrough"] = RUNNER_PASSTHROUGH + [h for h in (passthrough or []) if h not in RUNNER_PASSTHROUGH]
     if ech_relay:
         intercept["ech"] = {"relay": ech_relay}
     listen = {"proxy": f"127.0.0.1:{PROXY_PORT}", "admin": f"127.0.0.1:{ADMIN_PORT}", "intercept": intercept}

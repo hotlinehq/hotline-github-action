@@ -31,7 +31,8 @@ Without `exporters` (for example a pull request from a fork, where secrets are e
 1. Pulls the Hotline proxy image, pinned by digest in [`proxy-image.txt`](proxy-image.txt).
 2. Makes a new issuer for the job (ECDSA P-256, valid one day), writes the proxy config from your inputs and runs the proxy on the host network under its own numeric user.
 3. Waits for `/readyz`, trusts the issuer (`update-ca-certificates`, `NODE_EXTRA_CA_CERTS`), and switches the redirect on last. Outgoing TCP connections to public addresses on `tls-ports` (default 443) and `http-ports` (default 80) go to the proxy; the proxy's own user is left out.
-4. If any step fails, the job gets a warning and nothing changes: no rule, no variables, no container.
+4. The runner's own agent talks to `*.githubapp.com` and does not trust the job's issuer, so those calls are always relayed untouched (and not recorded). The proxy is told to stop at once at the end of the job (`--drain-delay 0s --shutdown-timeout 10s`), so teardown does not wait for open connections.
+5. If any step fails, the job gets a warning and nothing changes: no rule, no variables, no container.
 
 Every lookup (region, public address) happens before the redirect, so the proxy does not record it. Written in Python 3, standard library only, which is on GitHub's Ubuntu runners. Needs `python3`, `docker`, `openssl`, and `iptables` in `firewall` mode, plus PyYAML or `yq` to read the YAML inputs. A runner missing one gets a warning and nothing changes.
 
