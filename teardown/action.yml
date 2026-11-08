@@ -6,4 +6,7 @@ runs:
   using: composite
   steps:
     - shell: bash
-      run: bash "$GITHUB_ACTION_PATH/../scripts/teardown.sh"
+      run: |
+        if command -v python3 >/dev/null 2>&1; then
+          python3 "$GITHUB_ACTION_PATH/../run.py" teardown
+        fi

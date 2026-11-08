@@ -23,7 +23,7 @@ jobs:
       - name: pin
         env:
           TAG: ${{ inputs.tag }}
-        run: bash scripts/pin-image.sh "$TAG"
+        run: python3 run.py pin-image "$TAG"
       - name: commit
         env:
           TAG: ${{ inputs.tag }}

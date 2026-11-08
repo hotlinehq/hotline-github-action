@@ -33,7 +33,7 @@ Without `exporters` (for example a pull request from a fork, where secrets are e
 3. Waits for `/readyz`, trusts the issuer (`update-ca-certificates`, `NODE_EXTRA_CA_CERTS`), and switches the redirect on last. Outgoing TCP connections to public addresses on `tls-ports` (default 443) and `http-ports` (default 80) go to the proxy; the proxy's own user is left out.
 4. If any step fails, the job gets a warning and nothing changes: no rule, no variables, no container.
 
-Every lookup (region, public address) happens before the redirect, so the proxy does not record it. Needs `bash`, `jq`, `yq`, `openssl`, `curl` and `docker`, plus `iptables` in `firewall` mode (all on GitHub's Ubuntu runners). A runner missing one gets a warning and nothing changes.
+Every lookup (region, public address) happens before the redirect, so the proxy does not record it. Written in Python 3, standard library only, which is on GitHub's Ubuntu runners. Needs `python3`, `docker`, `openssl`, and `iptables` in `firewall` mode, plus PyYAML or `yq` to read the YAML inputs. A runner missing one gets a warning and nothing changes.
 
 ## Inputs
 
@@ -61,8 +61,7 @@ Run the `pin image` workflow by hand with a Hotline image tag. It looks up the d
 ## Development
 
 ```
-shellcheck -x -P SCRIPTDIR scripts/*.sh
-bats test
+python3 -m unittest discover -s . -t . -p 'test_*.py'
 ```
 
-The tests put fake `docker`, `iptables` and `curl` commands first on the path and read what they were called with, so they need no Docker, firewall or network.
+The code is in `hotline_action/`, started by `run.py` (`setup`, `teardown`, `watchdog`, `pin-image TAG`). The tests use a fake machine (`test/helpers.py`) that records every command and answers web requests from a table, so they need no Docker, firewall or network. Only `openssl` is real, so the tests can look at the certificate.

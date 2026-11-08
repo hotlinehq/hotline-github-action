@@ -1,7 +1,5 @@
-# On every pull request and push to main: shellcheck (finds mistakes in shell
-# scripts) and the tests (bats, a plain bash test runner). The tests use fake
-# docker, iptables and curl commands, so nothing here needs Docker or a
-# firewall.
+# On every pull request and push to main: the Python tests (unittest, in the standard library). The tests use a fake
+# machine, so nothing here needs Docker or a firewall.
 name: test
 on:
   pull_request:
@@ -16,9 +14,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: shellcheck
-        run: shellcheck -x -P SCRIPTDIR scripts/*.sh
-      - name: install bats
-        run: sudo apt-get install -y --no-install-recommends bats
+      - name: check that everything compiles
+        run: python3 -W error -m compileall -q hotline_action run.py test
       - name: tests
-        run: bats test
+        run: python3 -m unittest discover -s . -t . -p 'test_*.py' 

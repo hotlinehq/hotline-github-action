@@ -66,7 +66,12 @@ runs:
   steps:
     - id: setup
       shell: bash
-      run: bash "$GITHUB_ACTION_PATH/scripts/setup.sh"
+      run: |
+        if ! command -v python3 >/dev/null 2>&1; then
+          echo "::warning title=Hotline::python3 is not installed on this runner; nothing was changed."
+          exit 0
+        fi
+        python3 "$GITHUB_ACTION_PATH/run.py" setup
       env:
         HOTLINE_IN_EXPORTERS: ${{ inputs.exporters }}
         HOTLINE_IN_APIS: ${{ inputs.apis }}
