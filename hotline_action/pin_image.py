@@ -7,7 +7,7 @@ import re
 
 from .common import IMAGE_REPO
 
-RELEASE_URL = "https://api.github.com/repos/petercipov/hotline/releases/latest"
+RELEASE_URL = "https://api.github.com/repos/hotlinehq/hotline/releases/latest"
 
 
 def run_pin(tag, root, system, log=print):
@@ -33,7 +33,7 @@ def run_pin(tag, root, system, log=print):
         return 1
     try:
         system.run("cosign", "verify", f"{IMAGE_REPO}@{digest}",
-                   "--certificate-identity-regexp", "^https://github.com/petercipov/hotline/",
+                   "--certificate-identity-regexp", "^https://github.com/hotlinehq/hotline/",
                    "--certificate-oidc-issuer", "https://token.actions.githubusercontent.com")
     except Exception:
         log(f"the signature of {IMAGE_REPO}:{tag} does not verify; nothing was changed")

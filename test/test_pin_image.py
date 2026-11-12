@@ -3,7 +3,7 @@ import unittest
 from hotline_action.pin_image import run_pin
 from test.helpers import LOOKED_UP, PIN, RELEASE_URL, Base
 
-REPO = "ghcr.io/petercipov/hotline-proxy"
+REPO = "ghcr.io/hotlinehq/hotline-proxy"
 
 
 class Pin(Base):
@@ -43,7 +43,7 @@ class Pin(Base):
         self.pin("edge")
         self.assertTrue(self.called(
             f"cosign verify {REPO}@{LOOKED_UP} --certificate-identity-regexp "
-            "^https://github.com/petercipov/hotline/ --certificate-oidc-issuer "
+            "^https://github.com/hotlinehq/hotline/ --certificate-oidc-issuer "
             "https://token.actions.githubusercontent.com"))
 
     def test_refuses_a_digest_that_is_not_sha256(self):

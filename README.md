@@ -1,6 +1,6 @@
 # hotline-github-action
 
-Records the failed downloads and other calls of a CI job (the 502, 503 and 504 answers that stop a lint download, for example) through the [Hotline](https://github.com/petercipov/hotline) proxy, without changing the job's other steps. Linux runners only; anywhere else it prints one warning and does nothing.
+Records the failed downloads and other calls of a CI job (the 502, 503 and 504 answers that stop a lint download, for example) through the [Hotline](https://github.com/hotlinehq/hotline) proxy, without changing the job's other steps. Linux runners only; anywhere else it prints one warning and does nothing.
 
 ## Use
 
@@ -8,7 +8,7 @@ Put it first in a job, and the teardown last:
 
 ```yaml
 steps:
-  - uses: petercipov/hotline-github-action@v1
+  - uses: hotlinehq/hotline-github-action@v1
     env:
       OTLP_TOKEN: ${{ secrets.OTLP_TOKEN }}     # a secret named by { env: OTLP_TOKEN } below
     with:
@@ -18,7 +18,7 @@ steps:
             headers:
               Authorization: { env: OTLP_TOKEN }
   # ... your steps, unchanged ...
-  - uses: petercipov/hotline-github-action/teardown@v1
+  - uses: hotlinehq/hotline-github-action/teardown@v1
     if: always()
 ```
 

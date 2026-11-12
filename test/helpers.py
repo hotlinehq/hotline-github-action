@@ -12,10 +12,10 @@ from pathlib import Path
 from hotline_action.common import ADMIN_PORT, System
 
 D = "sha256:"
-PIN = f"ghcr.io/petercipov/hotline-proxy@{D}{'a' * 64}"
-PULLED = f"ghcr.io/petercipov/hotline-proxy@{D}{'b' * 64}"
+PIN = f"ghcr.io/hotlinehq/hotline-proxy@{D}{'a' * 64}"
+PULLED = f"ghcr.io/hotlinehq/hotline-proxy@{D}{'b' * 64}"
 LOOKED_UP = f"{D}{'c' * 64}"
-RELEASE_URL = "https://api.github.com/repos/petercipov/hotline/releases/latest"
+RELEASE_URL = "https://api.github.com/repos/hotlinehq/hotline/releases/latest"
 READYZ = f"http://127.0.0.1:{ADMIN_PORT}/readyz"
 
 
