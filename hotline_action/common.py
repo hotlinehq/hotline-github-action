@@ -8,7 +8,7 @@ import subprocess
 import urllib.request
 from pathlib import Path
 
-IMAGE_REPO = "ghcr.io/petercipov/hotline-proxy"
+IMAGE_REPO = "ghcr.io/hotlinehq/hotline-proxy"
 CONTAINER = "hotline-ci-proxy"
 PROXY_UID = 64321  # the proxy's own numeric user; the firewall leaves it out
 PROXY_PORT = 18080

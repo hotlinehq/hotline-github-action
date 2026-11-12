@@ -50,11 +50,11 @@ class Image(Base):
 
     def test_reads_the_word_edge_as_the_edge_tag(self):
         self.setup_job(HOTLINE_IN_IMAGE="edge")
-        self.assertIn("docker pull ghcr.io/petercipov/hotline-proxy:edge", self.system.calls)
+        self.assertIn("docker pull ghcr.io/hotlinehq/hotline-proxy:edge", self.system.calls)
 
     def test_uses_a_full_reference_and_warns_once_that_it_is_not_pinned(self):
-        self.setup_job(HOTLINE_IN_IMAGE="ghcr.io/petercipov/hotline-proxy:sha-abc")
-        self.assertIn("docker pull ghcr.io/petercipov/hotline-proxy:sha-abc", self.system.calls)
+        self.setup_job(HOTLINE_IN_IMAGE="ghcr.io/hotlinehq/hotline-proxy:sha-abc")
+        self.assertIn("docker pull ghcr.io/hotlinehq/hotline-proxy:sha-abc", self.system.calls)
         self.assertEqual(self.output.count("not pinned"), 1)
 
     def test_records_the_digest_actually_pulled_on_every_exporter(self):
@@ -66,7 +66,7 @@ class Image(Base):
         self.setup_job(HOTLINE_IN_IMAGE="edge")
         self.assertIn("pulling the image", self.output)
         self.assertEqual([c for c in self.system.calls if c.startswith("docker pull")],
-                         ["docker pull ghcr.io/petercipov/hotline-proxy:edge"])
+                         ["docker pull ghcr.io/hotlinehq/hotline-proxy:edge"])
         self.assertNotCalled("iptables")
 
     def test_fails_open_when_nothing_is_pinned_and_no_image_is_set(self):
