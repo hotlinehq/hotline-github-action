@@ -35,13 +35,19 @@ def build(*, exporters, apis, labels, extra_labels, passthrough, ech_relay,
           integration, mode, signing, record_urls=False):
     exporters = exporters or []
     apis = apis or {}
-    intercept = {"address": f"127.0.0.1:{INTERCEPT_PORT}", "issuer": "ci", "integration": integration}
-    intercept["passthrough"] = RUNNER_PASSTHROUGH + [h for h in (passthrough or []) if h not in RUNNER_PASSTHROUGH]
+    # the port the firewall sends secure calls to: it signs a certificate for each site with the ci issuer
+    transparent = {"cert": "ci", "integration": integration}
+    transparent["passthrough"] = RUNNER_PASSTHROUGH + [h for h in (passthrough or []) if h not in RUNNER_PASSTHROUGH]
     if ech_relay:
-        intercept["ech"] = {"relay": ech_relay}
-    listen = {"proxy": f"127.0.0.1:{PROXY_PORT}", "admin": f"127.0.0.1:{ADMIN_PORT}", "intercept": intercept}
+        transparent["ech"] = {"relay": ech_relay}
+    # the forward proxy port: plain calls the firewall redirects, and in env mode the apps' CONNECT
+    apps = {"address": f"tcp://127.0.0.1:{PROXY_PORT}"}
     if mode == "env":
-        listen["connect"] = {"issuer": "ci"}
+        apps["connect"] = {"cert": "ci"}
+    listeners = {
+        "apps": apps,
+        "firewall": {"address": f"tcp://127.0.0.1:{INTERCEPT_PORT}", "transparent": transparent},
+    }
 
     out_exporters = []
     for entry in exporters:
@@ -74,8 +80,9 @@ def build(*, exporters, apis, labels, extra_labels, passthrough, ech_relay,
     if record_urls:
         not_passed["urlFull"] = True
     return {
-        "listen": listen,
-        "issuers": {"ci": {"cert": "/etc/hotline/ci/ca.crt", "key": "/etc/hotline/ci/ca.key"}},
+        "admin": {"address": f"tcp://127.0.0.1:{ADMIN_PORT}"},
+        "certs": {"ci": {"cert": "/etc/hotline/ci/ca.crt", "key": "/etc/hotline/ci/ca.key"}},
+        "listeners": listeners,
         "exporters": out_exporters,
         "apis": out_apis,
         "integrations": [main, not_passed],

@@ -97,7 +97,19 @@ class Config(Base):
     def test_writes_the_default_integration_from_owner_repository_and_workflow(self):
         self.setup_job()
         self.assertEqual(self.config()["integrations"][0]["id"], "ci-acme_shop__CI_build")
-        self.assertEqual(self.config()["listen"]["intercept"]["integration"], "ci-acme_shop__CI_build")
+        self.assertEqual(self.config()["listeners"]["firewall"]["transparent"]["integration"], "ci-acme_shop__CI_build")
+
+    def test_names_each_port_as_a_listener_with_the_ci_issuer_in_certs(self):
+        self.setup_job()
+        config = self.config()
+        self.assertNotIn("listen", config)
+        self.assertNotIn("issuers", config)
+        self.assertEqual(config["admin"], {"address": "tcp://127.0.0.1:18081"})
+        self.assertEqual(config["certs"], {"ci": {"cert": "/etc/hotline/ci/ca.crt", "key": "/etc/hotline/ci/ca.key"}})
+        self.assertEqual(config["listeners"]["apps"], {"address": "tcp://127.0.0.1:18080"})
+        firewall = config["listeners"]["firewall"]
+        self.assertEqual(firewall["address"], "tcp://127.0.0.1:18444")
+        self.assertEqual(firewall["transparent"]["cert"], "ci")
 
     def test_uses_the_integration_input_when_given(self):
         self.setup_job(HOTLINE_IN_INTEGRATION="my-ci")
@@ -156,10 +168,10 @@ class Config(Base):
 
     def test_passes_passthrough_and_ech_relay_and_leaves_ech_out_when_empty(self):
         self.setup_job()
-        self.assertNotIn("ech", self.config()["listen"]["intercept"])
+        self.assertNotIn("ech", self.config()["listeners"]["firewall"]["transparent"])
         self.setup_job(HOTLINE_IN_PASSTHROUGH="[pinned.example.com]",
                        HOTLINE_IN_ECH_RELAY="[outer.example.net]")
-        intercept = self.config()["listen"]["intercept"]
+        intercept = self.config()["listeners"]["firewall"]["transparent"]
         self.assertIn("pinned.example.com", intercept["passthrough"])
         self.assertEqual(intercept["ech"], {"relay": ["outer.example.net"]})
 
@@ -167,11 +179,11 @@ class Config(Base):
 class RunnerAndShutdown(Base):
     def test_always_relays_the_runners_own_github_hosts_untouched(self):
         self.setup_job()
-        self.assertEqual(self.config()["listen"]["intercept"]["passthrough"], ["*.githubapp.com"])
+        self.assertEqual(self.config()["listeners"]["firewall"]["transparent"]["passthrough"], ["*.githubapp.com"])
 
     def test_adds_the_passthrough_input_to_the_default_once(self):
         self.setup_job(HOTLINE_IN_PASSTHROUGH="[pinned.example.com, '*.githubapp.com']")
-        self.assertEqual(self.config()["listen"]["intercept"]["passthrough"],
+        self.assertEqual(self.config()["listeners"]["firewall"]["transparent"]["passthrough"],
                          ["*.githubapp.com", "pinned.example.com"])
 
     def test_the_proxy_stops_at_once_so_the_last_records_are_sent(self):
@@ -319,7 +331,7 @@ class OrderAndModes(Base):
         env_file = self.read("GITHUB_ENV")
         self.assertIn("HTTPS_PROXY=http://ci-acme_shop__CI_build:x@127.0.0.1:18080", env_file)
         self.assertIn("HTTP_PROXY=", env_file)
-        self.assertEqual(self.config()["listen"]["connect"], {"issuer": "ci"})
+        self.assertEqual(self.config()["listeners"]["apps"]["connect"], {"cert": "ci"})
 
     def test_a_mode_that_is_neither_firewall_nor_env_fails_open(self):
         self.setup_job(HOTLINE_IN_MODE="banana")

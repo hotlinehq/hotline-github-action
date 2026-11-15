@@ -1,2 +1,2 @@
 # The Hotline image the action pulls, by digest. Written by the 'pin image' workflow.
-ghcr.io/petercipov/hotline-proxy@sha256:c40104201001870ca84bc55780b46247aaeca5a632c7df1d4cac0523ecfe4a9e  # prerelease
+ghcr.io/hotlinehq/hotline-proxy@sha256:3a609436525a701e7ca867019495cec62afab824e1b2accfd976fb46c6e05120  # prerelease
